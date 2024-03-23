@@ -3,6 +3,7 @@ Supervised Models
 """
 # Author: Shankar Rao Pandala <shankar.pandala@live.com>
 
+
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -22,6 +23,8 @@ from sklearn.metrics import (
     f1_score,
     r2_score,
     mean_squared_error,
+    precision_score,
+    recall_score
 )
 import warnings
 import xgboost
@@ -219,7 +222,7 @@ class LazyClassifier:
         self.random_state = random_state
         self.classifiers = classifiers
 
-    def fit(self, X_train, X_test, y_train, y_test):
+    def fit(self, X_train, X_test, y_train, y_test,Test):
         """Fit Classification algorithms to X_train and y_train, predict and score on X_test, y_test.
         Parameters
         ----------
@@ -246,9 +249,12 @@ class LazyClassifier:
         B_Accuracy = []
         ROC_AUC = []
         F1 = []
+        pre=[]
+        recall=[]
         names = []
         TIME = []
         predictions = {}
+        pred = {}
 
         if self.custom_metric is not None:
             CUSTOM_METRIC = []
@@ -256,6 +262,7 @@ class LazyClassifier:
         if isinstance(X_train, np.ndarray):
             X_train = pd.DataFrame(X_train)
             X_test = pd.DataFrame(X_test)
+            Test = pd.DataFrame(Test)
 
         numeric_features = X_train.select_dtypes(include=[np.number]).columns
         categorical_features = X_train.select_dtypes(include=["object"]).columns
@@ -303,9 +310,12 @@ class LazyClassifier:
                 pipe.fit(X_train, y_train)
                 self.models[name] = pipe
                 y_pred = pipe.predict(X_test)
+                Y_test=pipe.predict(Test)
                 accuracy = accuracy_score(y_test, y_pred, normalize=True)
                 b_accuracy = balanced_accuracy_score(y_test, y_pred)
                 f1 = f1_score(y_test, y_pred, average="weighted")
+                pres=precision_score(y_test, y_pred, average="weighted")
+                re=recall_score(y_test, y_pred, average="weighted")
                 try:
                     roc_auc = roc_auc_score(y_test, y_pred)
                 except Exception as exception:
@@ -318,6 +328,8 @@ class LazyClassifier:
                 B_Accuracy.append(b_accuracy)
                 ROC_AUC.append(roc_auc)
                 F1.append(f1)
+                pre.append(pres)
+                recall.append(re)
                 TIME.append(time.time() - start)
                 if self.custom_metric is not None:
                     custom_metric = self.custom_metric(y_test, y_pred)
@@ -331,6 +343,8 @@ class LazyClassifier:
                                 "Balanced Accuracy": b_accuracy,
                                 "ROC AUC": roc_auc,
                                 "F1 Score": f1,
+                                "Recall": re,
+                                "Precision": pres,
                                 self.custom_metric.__name__: custom_metric,
                                 "Time taken": time.time() - start,
                             }
@@ -343,11 +357,15 @@ class LazyClassifier:
                                 "Balanced Accuracy": b_accuracy,
                                 "ROC AUC": roc_auc,
                                 "F1 Score": f1,
+                                "Recall": re,
+                                "Precision": pres,
                                 "Time taken": time.time() - start,
                             }
                         )
                 if self.predictions:
                     predictions[name] = y_pred
+                    pred[name] = Y_test
+
             except Exception as exception:
                 if self.ignore_warnings is False:
                     print(name + " model failed to execute")
@@ -360,6 +378,8 @@ class LazyClassifier:
                     "Balanced Accuracy": B_Accuracy,
                     "ROC AUC": ROC_AUC,
                     "F1 Score": F1,
+                    "Recall": recall,
+                    "Precision": pre,
                     "Time Taken": TIME,
                 }
             )
@@ -381,7 +401,8 @@ class LazyClassifier:
 
         if self.predictions:
             predictions_df = pd.DataFrame.from_dict(predictions)
-        return scores, predictions_df if self.predictions is True else scores
+            pred_df=pd.DataFrame.from_dict(pred)
+        return scores, predictions_df, pred_df if self.predictions is True else scores
 
     def provide_models(self, X_train, X_test, y_train, y_test):
         """
@@ -507,7 +528,7 @@ class LazyRegressor:
         verbose=0,
         ignore_warnings=True,
         custom_metric=None,
-        predictions=True,
+        predictions=False,
         random_state=42,
         regressors="all",
     ):
