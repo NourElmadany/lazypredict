@@ -8,6 +8,7 @@
 
 Lazy Predict helps build a lot of basic models without much code and
 helps understand which models works better without any parameter tuning.
+This is a modified version which can return the prediction of each classifier/regressor.
 
 -   Free software: MIT license
 -   Documentation: <https://lazypredict.readthedocs.io>.
