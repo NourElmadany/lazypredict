@@ -207,7 +207,7 @@ class LazyClassifier:
         verbose=0,
         ignore_warnings=True,
         custom_metric=None,
-        predictions=False,
+        predictions=True,
         random_state=42,
         classifiers="all",
     ):
@@ -507,7 +507,7 @@ class LazyRegressor:
         verbose=0,
         ignore_warnings=True,
         custom_metric=None,
-        predictions=False,
+        predictions=True,
         random_state=42,
         regressors="all",
     ):
