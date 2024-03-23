@@ -40,7 +40,8 @@ Example :
     X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=.5,random_state =123)
 
     clf = LazyClassifier(verbose=0,ignore_warnings=True, custom_metric=None)
-    models,predictions, Predictions_of_extra = clf.fit(X_train, X_test, y_train, y_test,X_test)
+    # If you would like to find the prediction of a specific data, provide it as a fifth input otherwise Test= X_test 
+    models,predictions, Predictions_of_extra = clf.fit(X_train, X_test, y_train, y_test,Test)
 
     print(models)
 
