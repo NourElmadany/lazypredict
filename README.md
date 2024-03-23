@@ -17,7 +17,7 @@ This is a modified version which can return the prediction of each classifier/re
 
 To install Lazy Predict:
 
-    pip install lazypredict
+    pip install git+https://github.com/NourElmadany/lazypredict.git
 
 # Usage
 
